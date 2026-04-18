@@ -1,0 +1,30 @@
+name: AI PR Code Review & Security Audit
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  ai-reviewer:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      contents: read
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Execute AI Review
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          OPENCODE_API_KEY: ${{ secrets.OPENCODE_API_KEY }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: node .github/scripts/ai-review.js
