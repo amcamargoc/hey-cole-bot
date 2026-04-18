@@ -1,8 +1,8 @@
-# Proyecto El Coleto - Pure Sabor & Zero Filter 🇨🇴🥥
+# Hey, cole - personal assistant
 
 ![Hey Cole](assets/cole.png)
 
-**Hey Cole** is your "Coleto" personal assistant—brazen, high-energy, and radically honest. Powered by [OpenCode](https://opencode.ai), he acts as a strategic partner who challenges your ideas and manages your high-level planning from Telegram.
+**Cole** is your "Coleto" personal assistant—brazen, high-energy, and radically honest. Powered by [OpenCode](https://opencode.ai), he acts as a strategic partner who challenges your ideas and manages your high-level planning from Telegram.
 
 ### 2. Configure OpenCode (The "Brain")
 El Coleto relies on a local [OpenCode](https://opencode.ai) server to handle models and projects.
