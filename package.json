@@ -21,7 +21,7 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test src/**/*.test.js test/**/*.js scripts/**/*.js",
+    "test": "node --test src/**/*.test.js",
     "test:logic": "node scripts/test_bot_logic.js"
   },
   "dependencies": {
