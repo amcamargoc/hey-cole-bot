@@ -50,6 +50,12 @@ jobs:
         with:
           node-version: 20
 
+      - name: Install Dependencies
+        run: npm ci
+
+      - name: Run Tests
+        run: npm test
+
       - name: Execute AI Auto-Fix
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

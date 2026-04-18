@@ -71,7 +71,7 @@ export function setupCommands(bot) {
     if (!sessionData) {
       const activeProject = getActiveProject(chatId);
       const session = await opencodeClient.session.create({ body: { title: `Hey Cole: ${activeProject} (${chatId})` } });
-      sessionData = { id: session.data.id, createdAt: Date.now(), lastUsed: Date.now(), messageCount: 0, model: null, precisionMode: false };
+      sessionData = { id: session.data.id, createdAt: Date.now(), lastUsed: Date.now(), messageCount: 0, model: null, precisionMode: false, developerMode: false, devModeStartedAt: null };
       sessions.set(sessionKey, sessionData);
     }
     
@@ -187,6 +187,7 @@ export function setupCommands(bot) {
       `/history - Show session details\n` +
       `/system - View system prompt\n` +
       `/precision - Toggle deep verification\n` +
+      `/dev - Toggle Developer (Code-Edit) Mode\n` +
       `/health - Check bot status\n` +
       `/start - Welcome message`,
       { parse_mode: 'Markdown' }
@@ -203,6 +204,22 @@ export function setupCommands(bot) {
       await ctx.reply('🎯 *Precision Mode: ON*\nYour future responses will now be double-checked by a secondary AI agent for maximum accuracy. Note: This will increase response time.', { parse_mode: 'Markdown' });
     } else {
       await ctx.reply('🚀 *Precision Mode: OFF*\nResponses will be generated instantly from the primary model.', { parse_mode: 'Markdown' });
+    }
+  });
+
+  bot.command('dev', async (ctx) => {
+    if (!requireAuth(ctx)) return;
+    const sessionKey = getSessionKey(ctx.chat.id);
+    const sessionData = sessions.get(sessionKey);
+    if (!sessionData) return ctx.reply('❌ Send a message first to establish an active session.');
+    
+    sessionData.developerMode = !sessionData.developerMode;
+    if (sessionData.developerMode) {
+      sessionData.devModeStartedAt = Date.now();
+      await ctx.reply('🛠️ *Developer Mode: ON*\nEl Coleto now has permission to modify the codebase. Use with caution! Mode will auto-expire in 1 hour.', { parse_mode: 'Markdown' });
+    } else {
+      sessionData.devModeStartedAt = null;
+      await ctx.reply('🔒 *Developer Mode: OFF*\nCode-editing tools are now locked.', { parse_mode: 'Markdown' });
     }
   });
 
