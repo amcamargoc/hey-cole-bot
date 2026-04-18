@@ -1,12 +1,28 @@
 {
   "name": "hey-cole",
   "version": "1.0.0",
-  "description": "Hey Cole - Your Elite Personal AI Assistant for Telegram",
   "type": "module",
+  "description": "🤖 AI Personal Assistant Bot for Telegram - OpenCode-powered, multi-project, with GitHub MCP & Google Workspace integration",
+  "keywords": [
+    "telegram-bot",
+    "ai-assistant",
+    "opencode",
+    "chatgpt-alternative",
+    "mcp-server",
+    "github-integration",
+    "google-workspace",
+    "llm-bot",
+    "telegram",
+    "ai-agent",
+    "productivity",
+    "automation",
+    "caretaker-bot",
+    "personal-assistant"
+  ],
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-"test": "node --test src/**/*.test.js",
+    "test": "node --test src/**/*.test.js",
     "test:logic": "node scripts/test_bot_logic.js"
   },
   "dependencies": {
