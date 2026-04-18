@@ -23,16 +23,14 @@ const mockOpencodeClient = {
   }
 };
 
-// Skip command handler tests due to Node.js 24 template literal parsing issue
-// The DEFAULT_SYSTEM_PROMPT has emoji that causes "precision is not defined" error
-// This is a Node.js 24.x bug, not a code issue
-test.skip('setup commands', async () => {
+// Run command handler tests (removed skip after fixing template literals)
+test('setup commands', async () => {
   const { setupCommands } = await import('./commandHandler.js');
   setupCommands(mockBot);
   assert.ok(mockBot.commands['project']);
 });
 
-test.skip('/project command updates active project', async (t) => {
+test('/project command updates active project', async (t) => {
   const chatId = 1234567;
   const ctx = {
     chat: { id: chatId },
@@ -52,7 +50,7 @@ test.skip('/project command updates active project', async (t) => {
   assert.ok(ctx.lastReply.includes('my-cool-project'));
 });
 
-test.skip('/models command attempts to list tiers', async (t) => {
+test('/models command attempts to list tiers', async (t) => {
   const chatId = 1234567;
   
   // Inject mock client via the new setter
@@ -70,7 +68,7 @@ test.skip('/models command attempts to list tiers', async (t) => {
   assert.ok(ctx.lastReply.includes('Select a Brain'));
 });
 
-test.skip('settier action updates session model', async (t) => {
+test('settier action updates session model', async (t) => {
   const chatId = 1234567;
   const ctx = {
     chat: { id: chatId },
@@ -86,11 +84,11 @@ test.skip('settier action updates session model', async (t) => {
   await settierAction.handler(ctx);
 
   const session = sessionModule.sessions.get(sessionKey);
-  assert.strictEqual(session.model.modelID, 'gemini-3-flash');
+  assert.strictEqual(session.model.modelID, 'minimax-m2.5-free');
   assert.ok(ctx.lastEdit.includes('Smart'));
 });
 
-test.skip('/health command shows status', async (ctx) => {
+test('/health command shows status', async (ctx) => {
   const testCtx = {
     chat: { id: 1234567 },
     reply: (msg) => { testCtx.lastReply = msg; }
