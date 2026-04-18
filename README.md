@@ -2,6 +2,7 @@
 
 <img src="assets/cole.png" alt="Hey Cole" width="300">
 
+<<<<<<< HEAD
 ![**Cole**]([https://opencode.ai](https://share.google/aimode/9kV6DNPTUiMUktL6v)) is a personal assistant, radically honest. Powered by [OpenCode](https://opencode.ai), it acts as a strategic partner who challenges your ideas and manages your high-level planning from Telegram.
 
 ## ⚠️ Security Warning & Disclaimer
@@ -120,8 +121,6 @@ Hey Cole uses the native `github` MCP server. It uses your `GITHUB_TOKEN` direct
 > **Hey Cole:** (Uses `create_issue` tool) "Issue #12 created successfully."
 
 **Security Note:** Hey Cole is instructed never to delete repositories or close issues without explicit confirmation.
-
-
 
 ### 2. Configure OpenCode (The "Brain")
 El Coleto relies on a local [OpenCode](https://opencode.ai) server to handle models and projects.
