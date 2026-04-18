@@ -4,6 +4,7 @@ import { sessions, getSessionKey, getActiveProject, switchProject } from '../ser
 import { opencodeClient, opencodeServerRunning } from '../services/opencode.js';
 import { DEFAULT_SYSTEM_PROMPT } from './messageHandler.js';
 import { TIERS, DEFAULT_TIER } from '../config/models.js';
+import { submitTuiResponse, getPendingQuestion } from '../services/tuiControl.js';
 
 export function setupCommands(bot) {
   bot.start(async (ctx) => {
@@ -109,6 +110,52 @@ export function setupCommands(bot) {
     } catch (err) {
       console.error('Permission reply error:', err);
       await ctx.answerCbQuery('❌ Failed to send reply');
+    }
+  });
+
+  // TUI Control response handler — user tapped an inline button for an interactive question
+  bot.action(/tui_resp:(.+):(.+)/, async (ctx) => {
+    if (!requireAuth(ctx)) return;
+    const chatId = ctx.chat.id;
+    const index = ctx.match[1];
+    const value = decodeURIComponent(ctx.match[2]);
+
+    const pending = getPendingQuestion(chatId);
+    if (!pending) {
+      await ctx.answerCbQuery('⏱️ This question has expired');
+      return;
+    }
+
+    try {
+      let responseBody;
+
+      if (index === 'skip') {
+        responseBody = null;
+        await ctx.answerCbQuery('⏭️ Skipped');
+      } else {
+        const optIndex = parseInt(index, 10);
+        const selectedOption = pending.options?.[optIndex];
+        responseBody = selectedOption?.value || value;
+        await ctx.answerCbQuery(`✅ Selected: ${selectedOption?.label || value}`);
+      }
+
+      const success = await submitTuiResponse(opencodeClient, chatId, responseBody);
+
+      if (success) {
+        const selectedLabel = index === 'skip' ? 'Skipped' : (pending.options?.[parseInt(index, 10)]?.label || value);
+        await ctx.editMessageText(
+          ctx.callbackQuery.message.text + `\n\n✅ *Response:* ${selectedLabel}`,
+          { parse_mode: 'Markdown' }
+        ).catch(() => {});
+      } else {
+        await ctx.editMessageText(
+          ctx.callbackQuery.message.text + '\n\n⚠️ *Failed to send response*',
+          { parse_mode: 'Markdown' }
+        ).catch(() => {});
+      }
+    } catch (err) {
+      console.error('TUI response handler error:', err);
+      await ctx.answerCbQuery('❌ Failed to send response');
     }
   });
 
