@@ -1,7 +1,7 @@
 import { requireAuth } from '../middleware/auth.js';
 import { sessions, sessionToChatId, checkRateLimit, ongoingPrompts, getSessionKey, getActiveProject } from '../services/session.js';
 import { opencodeClient, opencodeServerRunning } from '../services/opencode.js';
-import { isValidMessage, splitMessage } from '../utils.js';
+import { isValidMessage, splitMessage, cleanMarkdownForTelegram } from '../utils.js';
 import { getVerifierModel } from '../config/models.js';
 import { logger } from '../services/logger.js';
 import { hasPendingFreeformQuestion, submitTuiResponse } from '../services/tuiControl.js';
@@ -239,8 +239,9 @@ if (sessionData.precisionMode && responseText !== 'Processing...') {
 
 clearInterval(typingInterval);
 
-// Final Delivery
-const parts = splitMessage(responseText);
+// Final Delivery - clean markdown for Telegram before sending
+const cleanText = cleanMarkdownForTelegram(responseText);
+const parts = splitMessage(cleanText);
 
 // Edit the placeholder with the first part
 if (parts.length > 0) {
