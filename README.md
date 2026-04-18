@@ -1,6 +1,10 @@
 # Proyecto El Coleto - Pure Sabor & Zero Filter 🇨🇴🥥
 
-![Hey Cole](assets/cole.png)
+<img src="assets/cole.png" alt="Hey Cole" width="300">
+
+*Or using markdown with width parameter:*
+```![Hey Cole](assets/cole.png#w=300)
+```
 
 **Hey Cole** is your "Coleto" personal assistant—brazen, high-energy, and radically honest. Powered by [OpenCode](https://opencode.ai), he acts as a strategic partner who challenges your ideas and manages your high-level planning from Telegram.
 
