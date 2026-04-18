@@ -117,11 +117,12 @@ export function setupCommands(bot) {
   bot.action(/tui_resp:(.+):(.+)/, async (ctx) => {
     if (!requireAuth(ctx)) return;
     const chatId = ctx.chat.id;
-    const index = ctx.match[1];
-    const value = decodeURIComponent(ctx.match[2]);
+    const safeId = ctx.match[1];  // sanitized requestId
+    const rawIndex = ctx.match[2];  // index or "skip"
+    const index = decodeURIComponent(rawIndex);
 
     const pending = getPendingQuestion(chatId);
-    if (!pending) {
+    if (!pending || pending.safeId !== safeId) {
       await ctx.answerCbQuery('⏱️ This question has expired');
       return;
     }

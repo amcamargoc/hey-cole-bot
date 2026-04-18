@@ -104,11 +104,15 @@ async function handleTuiRequest(request) {
   const question = request.body?.question || request.question || 'Continue?';
   const options = request.body?.options || request.options || [];
   const requestId = request.id || request.body?.id || Date.now().toString();
+  
+  // Sanitize requestId to prevent callback data injection
+  const safeId = requestId.replace(/[:|]/g, '_').substring(0, 32);
 
   logger.interact(`"${question}"`, `chat ${chatId}`);
 
   pendingTuiQuestions.set(chatId, {
     requestId,
+    safeId,
     sessionId,
     question,
     options,
@@ -126,14 +130,14 @@ async function handleTuiRequest(request) {
     const keyboard = {
       reply_markup: {
         inline_keyboard: options.map((opt, idx) => [
-          { text: opt.label || opt, callback_data: `tui_resp:${requestId}:${idx}` }
+          { text: opt.label || opt, callback_data: `tui_resp:${safeId}:${idx}` }
         ])
       }
     };
     
     // Add Skip button
     keyboard.reply_markup.inline_keyboard.push([
-      { text: '⏭️ Skip', callback_data: `tui_resp:${requestId}:skip` }
+      { text: '⏭️ Skip', callback_data: `tui_resp:${safeId}:skip` }
     ]);
 
     await bot.telegram.sendMessage(
