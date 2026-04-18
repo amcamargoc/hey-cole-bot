@@ -1,0 +1,10 @@
+node_modules/
+.env
+.google-token.json
+*.log
+.DS_Store
+opencode-data/
+.ollama/
+plans/
+scratch/
+resources/

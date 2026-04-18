@@ -1,0 +1,51 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "skill": {
+      "*": "allow"
+    },
+    "bash": {
+      "sqlite3": "allow",
+      "npm": "allow",
+      "node": "allow",
+      "npx": "allow",
+      "git": "allow",
+      "ls": "allow",
+      "mkdir": "allow",
+      "touch": "allow",
+      "rm": "deny",
+      "cp": "allow",
+      "mv": "deny",
+      "cat": "allow",
+      "grep": "allow",
+      "sed": "allow",
+      "awk": "allow",
+      "head": "allow",
+      "tail": "allow",
+      "find": "deny",
+      "curl": "allow",
+      "wget": "allow",
+      "tar": "allow",
+      "unzip": "allow",
+      "zip": "allow",
+      "chmod": "allow",
+      "chown": "deny",
+      "df": "allow",
+      "du": "allow",
+      "ps": "allow",
+      "top": "allow",
+      "kill": "deny",
+      "rm -rf": "deny",
+      "rm -r /": "deny",
+      "mkfs": "deny",
+      "dd": "deny",
+      ":(){:|:&};:": "deny",
+      "chmod 777": "deny",
+      "chown -R": "deny",
+      "wget |": "deny",
+      "curl |": "deny",
+      "> /dev/sda": "deny"
+    },
+    "edit": "allow"
+  }
+}
