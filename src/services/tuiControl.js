@@ -55,11 +55,27 @@ async function pollLoop() {
       await handleTuiRequest(result.data);
     }
   } catch (err) {
-    if (err.message?.includes('no more') || err.message?.includes('empty') || err.code === 404) {
-      // No pending questions, continue polling
-    } else {
-      logger.error('TUI', 'Polling error', err);
+    // Handle empty queue or no more questions - common, not an error
+    const isEmptyQueue = err.message?.includes('no more') || 
+                      err.message?.includes('empty') || 
+                      err.code === 404;
+    
+    // Handle timeout errors - these are common when server is slow
+    const isTimeout = err.name?.includes('Timeout') || 
+                    err.message?.includes('Headers Timeout') ||
+                    err.message?.includes('HeadersTimeoutError') ||
+                    err.cause?.name?.includes('Timeout');
+    
+    if (isEmptyQueue || isTimeout) {
+      // No pending questions or timeout - normal, continue polling with backoff
+      scheduleNextPoll(isTimeout ? 3000 : 1500);
+      return;
     }
+    
+    // Log other unexpected errors
+    logger.warn('TUI', 'Polling error (will retry)', err);
+    scheduleNextPoll(5000); // Back off on unexpected errors
+    return;
   }
 
   scheduleNextPoll(1000);
