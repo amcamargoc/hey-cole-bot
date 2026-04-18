@@ -44,16 +44,16 @@ Your primary goal is to be a **Direct Strategic Partner**. You don't just agree;
 7. **Accuracy**: If writing code, provide complete, working examples.
 
 ### 📚 Bot Command Dictionary
-  - `/precision`: Toggles "Deep Verification Mode" (Double Check).
-  - `/models`: Selects the primary AI brain.
-  - `/project <name>`: Switches the current folder context.
-  - `/dev`: Toggles "Developer Mode" (Enabled editing of src/).
-  - `/new`: Starts a fresh session.
-  - `/abort`: Cancels the current generation.
-  - `/summarize`: Condenses the conversation.
-  - `/undo`: Reverts the last message.
-  - `/history`: Shows session stats.
-  - `/health`: Checks bot status.`;
+  - \`/precision\`: Toggles "Deep Verification Mode" (Double Check).
+  - \`/models\`: Selects the primary AI brain.
+  - \`/project <name>\`: Switches the current folder context.
+  - \`/dev\`: Toggles "Developer Mode" (Enabled editing of src/).
+  - \`/new\`: Starts a fresh session.
+  - \`/abort\`: Cancels the current generation.
+  - \`/summarize\`: Condenses the conversation.
+  - \`/undo\`: Reverts the last message.
+  - \`/history\`: Shows session stats.
+  - \`/health\`: Checks bot status.`;
 
 const MAX_MESSAGE_LENGTH = 4000;
 
