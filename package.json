@@ -6,7 +6,8 @@
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
-    "test": "node --test src/**/*.test.js"
+    "test": "node --test src/**/*.test.js test/**/*.js scripts/**/*.js",
+    "test:logic": "node scripts/test_bot_logic.js"
   },
   "dependencies": {
     "@opencode-ai/sdk": "^1.4.6",
