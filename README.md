@@ -73,15 +73,18 @@ You can manage multiple projects simultaneously. Each project has its own isolat
 
 ## Model Tiers & Dual-Brain Logic 🧠🍍
 
-Hey Cole uses a **$0 budget, high-intelligence** strategy. Instead of complex technical lists, you choose between two primary "Brains" served via OpenCode Zen:
+Hey Cole uses a **$0 budget, high-intelligence** strategy. Choose between three "Brains" served via OpenCode Zen:
 
-1.  **Standard (🥥)**: Uses `minimax-m2.5-free`. Fast, efficient, and great for daily tasks.
-2.  **Smart (🍍)**: Uses `gemini-3-flash`. Higher quota and intelligent reasoning for complex code.
+1.  **⚡ Fast**: Uses `big-pickle`. Balanced speed & quality for daily tasks.
+2.  **🧠 Smart**: Uses `minimax-m2.5-free`. High intelligence for complex code.
+3.  **🚀 Pro**: Uses `gemini-3-flash`. Top-tier reasoning for difficult problems.
+
+Use `/models` to select your brain tier.
 
 ### 🛡️ Dual-Brain Precision Mode (Cross-Verification)
 When you turn on `/precision`, Cole engages **Cross-Verification**:
-*   If you are in **Standard**, the **Smart** brain verifies the work.
-*   If you are in **Smart**, the **Standard** brain verifies the work.
+*   If you are in **Smart**, the **Pro** brain verifies the work.
+*   If you are in **Pro**, the **Smart** brain verifies the work.
 *   **The Benefit**: Using two different model families to check each other is the single best way to kill hallucinations for free.
 
 
