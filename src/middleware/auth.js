@@ -56,19 +56,13 @@ export function recordFailedAuthAttempt(chatId) {
 }
 
 function verifyPassword(input, correct) {
-  // Constant-time comparison to prevent timing attacks
   if (!input || !correct) return false;
-  if (input.length !== correct.length) {
-    // Still do comparison to not leak length
-    let result = 1;
-    for (let i = 0; i < correct.length; i++) {
-      result &= (input[i] || '') !== correct[i];
-    }
-    return false;
-  }
+  const len = Math.max(input.length, correct.length);
   let result = 1;
-  for (let i = 0; i < correct.length; i++) {
-    result &= input[i] === correct[i];
+  for (let i = 0; i < len; i++) {
+    const inputChar = i < input.length ? input[i] : '';
+    const correctChar = i < correct.length ? correct[i] : '';
+    result &= inputChar === correctChar;
   }
   return result === 1;
 }
