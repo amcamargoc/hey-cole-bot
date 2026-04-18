@@ -112,14 +112,38 @@ export async function handleMessage(ctx) {
     // Observability & Feedback
     logger.draft(sessionData.model?.modelID || 'default', `Processing message for chat ${chatId}`);
     
+    // Create placeholder message first (we'll update it as thinking progresses)
+    let placeholderMsg = await ctx.reply('🥥 _Let it cook..._', { parse_mode: 'Markdown' });
+    
+    // Send initial thinking status to user
+    await ctx.telegram.editMessageText(chatId, placeholderMsg.message_id, null, 
+      '💭 *Analyzing your request...*', { parse_mode: 'Markdown' }).catch(() => {});
+    
     // Pulse: Keep typing indicator alive
     await ctx.replyWithChatAction('typing');
     const typingInterval = setInterval(() => {
       ctx.replyWithChatAction('typing').catch(() => {});
     }, 4000);
 
+    // Thinking phases - update user on what's happening
+    const thinkingPhases = [
+      { emoji: '🔍', text: '_Understanding the task..._', delay: 2000 },
+      { emoji: '🧠', text: '_Reasoning & planning..._', delay: 4000 },
+      { emoji: '🛠️', text: '_Executing tools..._', delay: 6000 },
+    ];
+    
+    let currentPhase = 0;
+    const phaseInterval = setInterval(() => {
+      if (currentPhase < thinkingPhases.length) {
+        const phase = thinkingPhases[currentPhase];
+        ctx.telegram.editMessageText(chatId, placeholderMsg.message_id, null, 
+          `${phase.emoji} ${phase.text}`, { parse_mode: 'Markdown' }).catch(() => {});
+        currentPhase++;
+      }
+    }, 2000);
+
     // Placeholder: Zero-silence feedback
-    let placeholderMsg = await ctx.reply('🥥 _Let it cook..._', { parse_mode: 'Markdown' });
+    // Replaced with dynamic status updates above
 
     let result;
     const startTime = Date.now();
@@ -130,6 +154,7 @@ export async function handleMessage(ctx) {
       });
     } catch (err) {
       clearInterval(typingInterval);
+      clearInterval(phaseInterval);
       logger.error('PROMPT', `OpenCode prompt error for chat ${chatId}`, err);
       const isTimeout = err.message?.includes('timeout') || err.message?.includes('Timeout') || err.code === 'ETIMEDOUT' || err.code === 'ECONNRESET';
       const errMsg = isTimeout 
@@ -142,6 +167,7 @@ export async function handleMessage(ctx) {
 
     if (result.error) {
        clearInterval(typingInterval);
+       clearInterval(phaseInterval);
        logger.error('PROMPT', `OpenCode Error result for chat ${chatId}: ${result.error.message}`);
        await ctx.telegram.editMessageText(chatId, placeholderMsg.message_id, null, `❌ *OpenCode Error:* ${result.error.message}`, { parse_mode: 'Markdown' });
        return;
@@ -149,6 +175,13 @@ export async function handleMessage(ctx) {
 
     const duration = ((Date.now() - startTime) / 1000).toFixed(1);
     logger.info('PROMPT', `Draft completed in ${duration}s for chat ${chatId}`);
+    
+    // Clear the thinking phase interval
+    clearInterval(phaseInterval);
+    
+    // Show generating response status
+    await ctx.telegram.editMessageText(chatId, placeholderMsg.message_id, null, 
+      '⚡ *Finalizing response...*', { parse_mode: 'Markdown' }).catch(() => {});
 
     const messageId = result.data?.info?.id;
     if (messageId) ongoingPrompts.set(chatId, messageId);

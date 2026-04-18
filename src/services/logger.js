@@ -49,6 +49,39 @@ class Logger {
   tool(toolName, args) {
     this.log('🛠️', 'TOOL', `${toolName} called with: ${JSON.stringify(args)}`, COLORS.blue);
   }
+
+  // Thinking/thought process logs (for user visibility)
+  thinking(thought) {
+    this.log('💭', 'THINKING', thought, COLORS.cyan);
+  }
+
+  // AI reasoning steps
+  reason(step, details) {
+    this.log('🧠', 'REASON', `[${step}] ${details}`, COLORS.blue);
+  }
+
+  // Tool execution updates
+  toolStart(toolName, params) {
+    this.log('⏳', 'TOOL', `Starting: ${toolName}`, COLORS.yellow);
+    if (params) {
+      console.log(`   └─ Params: ${JSON.stringify(params).slice(0, 200)}`);
+    }
+  }
+
+  toolResult(toolName, success, details) {
+    const status = success ? '✅' : '❌';
+    this.log(status, 'TOOL', `${toolName} finished: ${details}`, success ? COLORS.green : COLORS.red);
+  }
+
+  // Phase transitions
+  phase(phaseName, description) {
+    this.log('🔄', 'PHASE', `${phaseName}: ${description}`, COLORS.magenta);
+  }
+
+  // User-facing status updates
+  status(message) {
+    this.log('📍', 'STATUS', message, COLORS.green);
+  }
 }
 
 export const logger = new Logger();
