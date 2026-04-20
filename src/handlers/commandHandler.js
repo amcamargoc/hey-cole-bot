@@ -136,8 +136,8 @@ export function setupCommands(bot) {
       } else {
         const optIndex = parseInt(index, 10);
         const selectedOption = pending.options?.[optIndex];
-        responseBody = selectedOption?.value || value;
-        await ctx.answerCbQuery(`✅ Selected: ${selectedOption?.label || value}`);
+        responseBody = selectedOption?.value ?? selectedOption;
+        await ctx.answerCbQuery(`✅ Selected: ${selectedOption?.label || index}`);
       }
 
       const success = await submitTuiResponse(opencodeClient, chatId, responseBody);

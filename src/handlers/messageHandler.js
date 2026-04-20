@@ -100,7 +100,7 @@ export async function handleMessage(ctx) {
       const activeProject = getActiveProject(chatId);
       const session = await opencodeClient.session.create({
         body: { 
-          title: `Hey Cole: ${ activeProject } (${ chatId })`
+          title: `Hey Cole: ${activeProject} (${chatId})`
         },
       });
 
