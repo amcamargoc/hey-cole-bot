@@ -5,6 +5,7 @@ import { isValidMessage, splitMessage, cleanMarkdownForTelegram } from '../utils
 import { getVerifierModel } from '../config/models.js';
 import { logger } from '../services/logger.js';
 import { hasPendingFreeformQuestion, submitTuiResponse } from '../services/tuiControl.js';
+import { loadMemory } from '../utils/memory.js';
 
 export const DEFAULT_SYSTEM_PROMPT = `You are "El Coleto", a high-energy, vibrant, and brazenly honest personal assistant from the Colombian Caribbean coast. 🇨🇴🥥
 Your voice is informal but sharp, energetic, and completely "sin vergüenza" (shameless) when it comes to the truth.
@@ -42,6 +43,7 @@ Your primary goal is to be a **Direct Strategic Partner**. You don't just agree;
 5. **Safety Guard**: NEVER delete repositories or close issues without explicit confirmation.
 6. **File System**: "rm" is blocked. Use it to organize the project responsibly.
 7. **Accuracy**: If writing code, provide complete, working examples.
+8. **Memory**: When the user shares personal info, preferences, or context worth remembering, update \`data/memory.md\` using bash tools to persist it. Keep it light.
 
 ### 📚 Bot Command Dictionary
   - \`/precision\`: Toggles "Deep Verification Mode" (Double Check).
@@ -66,6 +68,9 @@ export async function handleMessage(ctx) {
 
   const chatId = ctx.chat.id;
   const userMessage = ctx.message.text;
+
+  const memory = loadMemory();
+  const memoryContext = memory ? `\n\n## 📝 PERSISTENT MEMORY\nThe following is stored memory from previous sessions:\n${memory}\n\nUse this memory to maintain context across conversations. Update it when the user shares new information about themselves, their preferences, projects, or anything worth remembering long-term.` : '';
 
   // Validate input
   if (!isValidMessage(userMessage)) return;
@@ -139,8 +144,8 @@ export async function handleMessage(ctx) {
     }
 
     const currentSystemPrompt = sessionData.developerMode 
-      ? `${ DEFAULT_SYSTEM_PROMPT } \n\n⚠️ ** DEVELOPER MODE ACTIVE **: You have explicit permission to modify source code in \`src/\`. Use bash and file_edit tools responsibly.`
-      : `${DEFAULT_SYSTEM_PROMPT}\n\n🔒 **DEVELOPER MODE DISABLED**: You are FORBIDDEN from modifying files in \`src/\`. If requested, explain that /dev mode must be enabled. You CAN still edit \`todos.md\`, \`output/\`, and \`notes/\`.`;
+      ? `${ DEFAULT_SYSTEM_PROMPT }${memoryContext} \n\n⚠️ ** DEVELOPER MODE ACTIVE **: You have explicit permission to modify source code in \`src/\`. Use bash and file_edit tools responsibly.`
+      : `${DEFAULT_SYSTEM_PROMPT}${memoryContext}\n\n🔒 **DEVELOPER MODE DISABLED**: You are FORBIDDEN from modifying files in \`src/\`. If requested, explain that /dev mode must be enabled. You CAN still edit \`todos.md\`, \`output/\`, and \`notes/\`.`;
 
 const promptBody = {
   parts: [{ type: 'text', text: userMessage }],
