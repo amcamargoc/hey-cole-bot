@@ -177,27 +177,19 @@ let placeholderMsg = await ctx.reply('🥥 _Let it cook..._', { parse_mode: 'Mar
 
 let result;
 const startTime = Date.now();
-try {
-  result = await opencodeClient.session.prompt({
-    path: { id: sessionId },
-    body: promptBody,
+
+result = await opencodeClient.session.prompt({
+  path: { id: sessionId },
+  body: promptBody,
+});
+
+if (result?.error) {
+  clearInterval(typingInterval);
+  logger.error('PROMPT', `OpenCode Error result for chat ${chatId}`, result.error);
+  const errMsg = `❌ *OpenCode Error:* ${result.error.message}`;
+  await ctx.telegram.editMessageText(chatId, placeholderMsg.message_id, null, errMsg, { parse_mode: 'Markdown' }).catch(() => {
+    ctx.reply(errMsg, { parse_mode: 'Markdown' });
   });
-} catch (err) {
-  clearInterval(typingInterval);
-  logger.error('PROMPT', `OpenCode prompt error for chat ${chatId}`, err);
-  const isTimeout = err.message?.includes('timeout') || err.message?.includes('Timeout') || err.code === 'ETIMEDOUT' || err.code === 'ECONNRESET';
-  const errMsg = isTimeout
-    ? '⏱️ Request timed out. The task may be too complex. Try a simpler request or /abort first.'
-    : '🛑 Failed to communicate with OpenCode. Try again later.';
-
-  await ctx.telegram.editMessageText(chatId, placeholderMsg.message_id, null, errMsg);
-  return;
-}
-
-if (result.error) {
-  clearInterval(typingInterval);
-  logger.error('PROMPT', `OpenCode Error result for chat ${chatId}: ${result.error.message}`);
-  await ctx.telegram.editMessageText(chatId, placeholderMsg.message_id, null, `❌ *OpenCode Error:* ${result.error.message}`, { parse_mode: 'Markdown' });
   return;
 }
 
@@ -211,35 +203,30 @@ let responseText = result.data?.parts?.filter(part => part.type === 'text')?.map
 
 // Precision Mode Verification: Dual-Brain Cross-Check
 if (sessionData.precisionMode && responseText !== 'Processing...') {
-  try {
-    const verifier = getVerifierModel(sessionData.model);
-    logger.verify(verifier.modelID, `Starting cross-check for chat ${chatId}`);
+  const verifier = getVerifierModel(sessionData.model);
+  logger.verify(verifier.modelID, `Starting cross-check for chat ${chatId}`);
 
-    await ctx.telegram.editMessageText(chatId, placeholderMsg.message_id, null, `🔍 _Cross-checking with ${verifier.modelID === 'gemini-3-flash' ? '🍍' : '🥥'}..._`, { parse_mode: 'Markdown' });
+  await ctx.telegram.editMessageText(chatId, placeholderMsg.message_id, null, `🔍 _Cross-checking with ${verifier.modelID === 'gemini-3-flash' ? '🍍' : '🥥'}..._`, { parse_mode: 'Markdown' });
 
-    const verifierPrompt = `Review and correct the following response for accuracy, safety, and logic. Output ONLY the final best version without any meta-commentary:\n\n${responseText}`;
-    const verifierSession = await opencodeClient.session.create({ body: { title: `Verifier ${chatId}` } });
+  const verifierPrompt = `Review and correct the following response for accuracy, safety, and logic. Output ONLY the final best version without any meta-commentary:\n\n${responseText}`;
+  const verifierSession = await opencodeClient.session.create({ body: { title: `Verifier ${chatId}` } });
 
-    const vStartTime = Date.now();
-    const verifyResult = await opencodeClient.session.prompt({
-      path: { id: verifierSession.data.id },
-      body: {
-        parts: [{ type: 'text', text: verifierPrompt }],
-        system: "You are a professional verifier assistant. Cross-check the response from another model and ensure it is perfect.",
-        model: verifier
-      }
-    });
+  const vStartTime = Date.now();
+  const verifyResult = await opencodeClient.session.prompt({
+    path: { id: verifierSession.data.id },
+    body: {
+      parts: [{ type: 'text', text: verifierPrompt }],
+      system: "You are a professional verifier assistant. Cross-check the response from another model and ensure it is perfect.",
+      model: verifier
+    }
+  });
 
-    const vDuration = ((Date.now() - vStartTime) / 1000).toFixed(1);
-    logger.info('VERIFY', `Verification completed in ${vDuration}s`);
+  const vDuration = ((Date.now() - vStartTime) / 1000).toFixed(1);
+  logger.info('VERIFY', `Verification completed in ${vDuration}s`);
 
-    const verifiedText = verifyResult.data?.parts?.filter(part => part.type === 'text')?.map(part => part.text)?.join('')?.trim();
-    if (verifiedText) responseText = verifiedText;
-    await opencodeClient.session.delete({ path: { id: verifierSession.data.id } }).catch(() => { });
-  } catch (verifyErr) {
-    logger.error('VERIFY', 'Verification failed', verifyErr);
-    await ctx.reply('⚠️ *Verification failed. Returning original draft.*', { parse_mode: 'Markdown' });
-  }
+  const verifiedText = verifyResult?.data?.parts?.filter(part => part.type === 'text')?.map(part => part.text)?.join('')?.trim();
+  if (verifiedText) responseText = verifiedText;
+  await opencodeClient.session.delete({ path: { id: verifierSession.data.id } }).catch(() => { });
 }
 
 clearInterval(typingInterval);

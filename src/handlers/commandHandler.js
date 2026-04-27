@@ -143,7 +143,7 @@ export function setupCommands(bot) {
       const success = await submitTuiResponse(opencodeClient, chatId, responseBody);
 
       if (success) {
-        const selectedLabel = index === 'skip' ? 'Skipped' : (pending.options?.[parseInt(index, 10)]?.label || value);
+        const selectedLabel = index === 'skip' ? 'Skipped' : (pending.options?.[parseInt(index, 10)]?.label || responseBody);
         await ctx.editMessageText(
           ctx.callbackQuery.message.text + `\n\n✅ *Response:* ${selectedLabel}`,
           { parse_mode: 'Markdown' }
