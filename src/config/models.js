@@ -1,43 +1,60 @@
 /**
  * Global Model Configuration for El Coleto
- * Focused on 100% Free / $0 Models via OpenCode Zen
+ * Scalable structure for easy model updates
+ * 
+ * To change models:
+ * 1. Update MODELS with new model IDs
+ * 2. TIER_ORDER defines the selection order in /models command
  */
 
-export const TIERS = {
-  STANDARD: {
-    id: 'standard',
-    name: '🥥 Standard',
-    brain: 'BRAIN_A',
-    providerID: 'opencode',
-    modelID: 'minimax-m2.5-free',
-    description: 'Fast & free workhorse (MiniMax M2.5)'
+export const MODELS = {
+  FAST: {
+    id: 'fast',
+    name: '⚡ Fast',
+    modelID: 'big-pickle',
+    description: 'Balanced speed & quality (Big Pickle)'
   },
   SMART: {
     id: 'smart',
-    name: '🍍 Smart',
-    brain: 'BRAIN_B',
-    providerID: 'opencode',
+    name: '🧠 Smart',
+    modelID: 'minimax-m2.5-free',
+    description: 'High intelligence (MiniMax M2.5 Free)'
+  },
+  PRO: {
+    id: 'pro',
+    name: '🚀 Pro',
     modelID: 'gemini-3-flash',
-    description: 'High intelligence & large quota (Gemini 3 Flash)'
+    description: 'Top-tier reasoning (Gemini 3 Flash)'
   }
 };
 
-export const BRAINS = {
-  BRAIN_A: { providerID: 'opencode', modelID: 'minimax-m2.5-free' },
-  BRAIN_B: { providerID: 'opencode', modelID: 'gemini-3-flash' }
+export const TIER_ORDER = ['FAST', 'SMART', 'PRO'];
+
+export const TIERS = MODELS;
+
+export const DEFAULT_TIER = MODELS.FAST;
+
+export const DEFAULT_MODEL = {
+  providerID: 'opencode',
+  modelID: MODELS.FAST.modelID
 };
 
-export const DEFAULT_TIER = TIERS.STANDARD;
+export function getModel(modelId) {
+  return MODELS[modelId] || MODELS.FAST;
+}
 
-/**
- * Get the verifier model based on the current model.
- * If in Standard (A), use Smart (B) to verify.
- * If in Smart (B), use Standard (A) to verify.
- */
+export function getModelById(id) {
+  return Object.values(MODELS).find(m => m.id === id) || MODELS.FAST;
+}
+
 export function getVerifierModel(currentModel) {
-  // If no model set, use BRAIN_B as the elite default judge
-  if (!currentModel) return BRAINS.BRAIN_B;
-
-  const isBrainA = currentModel.modelID === BRAINS.BRAIN_A.modelID;
-  return isBrainA ? BRAINS.BRAIN_B : BRAINS.BRAIN_A;
+  if (!currentModel) return DEFAULT_MODEL;
+  
+  const currentId = currentModel.modelId || currentModel.id;
+  
+  if (currentId === 'fast') return { providerID: 'opencode', modelID: MODELS.SMART.modelID };
+  if (currentId === 'smart') return { providerID: 'opencode', modelID: MODELS.PRO.modelID };
+  if (currentId === 'pro') return { providerID: 'opencode', modelID: MODELS.FAST.modelID };
+  
+  return DEFAULT_MODEL;
 }

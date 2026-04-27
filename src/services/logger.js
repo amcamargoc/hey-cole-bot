@@ -82,6 +82,12 @@ class Logger {
   status(message) {
     this.log('📍', 'STATUS', message, COLORS.green);
   }
+
+  // Interactive prompt logs (TUI control bridge)
+  interact(message, details = '') {
+    const fullMessage = details ? `${details}: ${message}` : message;
+    this.log('🎯', 'INTERACT', fullMessage, COLORS.cyan);
+  }
 }
 
 export const logger = new Logger();

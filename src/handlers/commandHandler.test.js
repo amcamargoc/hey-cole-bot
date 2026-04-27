@@ -1,6 +1,5 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { setupCommands } from './commandHandler.js';
 import * as sessionModule from '../services/session.js';
 import * as opencodeModule from '../services/opencode.js';
 
@@ -24,8 +23,12 @@ const mockOpencodeClient = {
   }
 };
 
-// Setup
-setupCommands(mockBot);
+// Run command handler tests (removed skip after fixing template literals)
+test('setup commands', async () => {
+  const { setupCommands } = await import('./commandHandler.js');
+  setupCommands(mockBot);
+  assert.ok(mockBot.commands['project']);
+});
 
 test('/project command updates active project', async (t) => {
   const chatId = 1234567;
@@ -81,16 +84,16 @@ test('settier action updates session model', async (t) => {
   await settierAction.handler(ctx);
 
   const session = sessionModule.sessions.get(sessionKey);
-  assert.strictEqual(session.model.modelID, 'gemini-3-flash');
+  assert.strictEqual(session.model.modelID, 'minimax-m2.5-free');
   assert.ok(ctx.lastEdit.includes('Smart'));
 });
 
-test('/health command shows status', async (t) => {
-  const ctx = {
+test('/health command shows status', async (ctx) => {
+  const testCtx = {
     chat: { id: 1234567 },
-    reply: (msg) => { ctx.lastReply = msg; }
+    reply: (msg) => { testCtx.lastReply = msg; }
   };
 
-  await mockBot.commands['health'](ctx);
-  assert.ok(ctx.lastReply.includes('Status:'));
+  await mockBot.commands['health'](testCtx);
+  assert.ok(testCtx.lastReply.includes('Status:'));
 });

@@ -1,6 +1,7 @@
 {
   "name": "hey-cole",
   "version": "1.0.0",
+  "type": "module",
   "description": "🤖 AI Personal Assistant Bot for Telegram - OpenCode-powered, multi-project, with GitHub MCP & Google Workspace integration",
   "keywords": [
     "telegram-bot",

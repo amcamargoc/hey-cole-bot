@@ -1,6 +1,7 @@
 import { createOpencode } from '@opencode-ai/sdk';
 import { sessionToChatId } from './session.js';
-import { Markup } from 'telegraf'; // Ensure bot context is available, or pass bot explicitly
+import { Markup } from 'telegraf';
+import { startPoller as startTuiPoller, stopPoller as stopTuiPoller, setBot as setTuiBot } from './tuiControl.js';
 
 export let opencodeClient = null;
 export let opencodeServer = null;
@@ -34,6 +35,10 @@ export async function connectToServer(bot) {
       
       // Setup global event listener for permissions
       setupEventListeners(bot);
+      
+      // Start TUI control poller for interactive questions
+      setTuiBot(bot);
+      startTuiPoller();
       
       // Ensure GitHub MCP is registered
       await ensureGithubMcp();
