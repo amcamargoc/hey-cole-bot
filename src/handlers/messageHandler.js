@@ -5,7 +5,7 @@ import { isValidMessage, splitMessage, cleanMarkdownForTelegram } from '../utils
 import { getVerifierModel } from '../config/models.js';
 import { logger } from '../services/logger.js';
 import { hasPendingFreeformQuestion, submitTuiResponse } from '../services/tuiControl.js';
-import { loadMemory } from '../utils/memory.js';
+import { loadAllContext } from '../utils/memory.js';
 
 export const DEFAULT_SYSTEM_PROMPT = `You are "El Coleto", a high-energy, vibrant, and brazenly honest personal assistant from the Colombian Caribbean coast. 🇨🇴🥥
 Your voice is informal but sharp, energetic, and completely "sin vergüenza" (shameless) when it comes to the truth.
@@ -39,7 +39,7 @@ Your primary goal is to be a **Direct Strategic Partner**. You don't just agree;
 1. **Directness First**: Lead with your honest assessment, then provide the solution.
 2. **Bot Feature Boundaries**: You are an assistant with built-in features. DO NOT modify your own source code to change your behavior unless explicitly in "Developer Mode" and tasked with "developing the bot".
 3. **Command Awareness**: If a user mentions a feature like "precision", "models", or "projects", they are referring to your slash commands. Tell them to use the command or explain how it works.
-4. **Whitelisted Workspaces**: You can freely create and edit files in "output/", "notes/", "docs/", and "todos.md" at any time.
+4. **Whitelisted Workspaces**: You can freely create and edit files in "output/", "notes/", "docs/", and "data/" at any time.
 5. **Safety Guard**: NEVER delete repositories or close issues without explicit confirmation.
 6. **File System**: "rm" is blocked. Use it to organize the project responsibly.
 7. **Accuracy**: If writing code, provide complete, working examples.
@@ -69,8 +69,8 @@ export async function handleMessage(ctx) {
   const chatId = ctx.chat.id;
   const userMessage = ctx.message.text;
 
-  const memory = loadMemory();
-  const memoryContext = memory ? `\n\n## 📝 PERSISTENT MEMORY\nThe following is stored memory from previous sessions:\n${memory}\n\nUse this memory to maintain context across conversations. Update it when the user shares new information about themselves, their preferences, projects, or anything worth remembering long-term.` : '';
+  const contextData = loadAllContext();
+  const contextNote = contextData ? `\n\n## 📁 DATA FOLDER CONTEXT\nThe following files are stored in the private \`data/\` folder (gitignored for security):\n${contextData}\n\nAlways read from \`data/\` for user's personal context, projects, and tasks.` : '';
 
   // Validate input
   if (!isValidMessage(userMessage)) return;
@@ -144,8 +144,8 @@ export async function handleMessage(ctx) {
     }
 
     const currentSystemPrompt = sessionData.developerMode 
-      ? `${ DEFAULT_SYSTEM_PROMPT }${memoryContext} \n\n⚠️ ** DEVELOPER MODE ACTIVE **: You have explicit permission to modify source code in \`src/\`. Use bash and file_edit tools responsibly.`
-      : `${DEFAULT_SYSTEM_PROMPT}${memoryContext}\n\n🔒 **DEVELOPER MODE DISABLED**: You are FORBIDDEN from modifying files in \`src/\`. If requested, explain that /dev mode must be enabled. You CAN still edit \`todos.md\`, \`output/\`, and \`notes/\`.`;
+      ? `${ DEFAULT_SYSTEM_PROMPT }${contextNote} \n\n⚠️ ** DEVELOPER MODE ACTIVE **: You have explicit permission to modify source code in \`src/\`. Use bash and file_edit tools responsibly.`
+      : `${DEFAULT_SYSTEM_PROMPT}${contextNote}\n\n🔒 **DEVELOPER MODE DISABLED**: You are FORBIDDEN from modifying files in \`src/\`. If requested, explain that /dev mode must be enabled. You CAN still edit \`data/\`.`;
 
 const promptBody = {
   parts: [{ type: 'text', text: userMessage }],
