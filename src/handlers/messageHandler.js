@@ -70,7 +70,7 @@ export async function handleMessage(ctx) {
   const userMessage = ctx.message.text;
 
   const contextData = loadAllContext();
-  const contextNote = contextData ? `\n\n## 📁 DATA FOLDER CONTEXT\nThe following files are stored in the private \`data/\` folder (gitignored for security):\n${contextData}\n\nAlways read from \`data/\` for user's personal context, projects, and tasks.` : '';
+  const contextNote = contextData ? `\n\n## 📁 DATA FOLDER CONTEXT\nThe following files are stored in the private \`data/\` folder (gitignored for security):\n${contextData}\n\nAlways read from \`data/\` for user's personal context, projects, tasks, and personal memories/research.` : '';
 
   // Validate input
   if (!isValidMessage(userMessage)) return;

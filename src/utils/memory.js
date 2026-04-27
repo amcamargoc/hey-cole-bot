@@ -41,10 +41,27 @@ export function loadProjects() {
   }
 }
 
+export function loadMemories() {
+  const memoriesDir = join(DATA_DIR, 'memories');
+  if (!existsSync(memoriesDir)) return null;
+  try {
+    const files = readdirSync(memoriesDir).filter(f => f.endsWith('.md'));
+    const memories = {};
+    for (const file of files) {
+      const name = file.replace('.md', '');
+      memories[name] = readFileSync(join(memoriesDir, file), 'utf-8');
+    }
+    return memories;
+  } catch {
+    return null;
+  }
+}
+
 export function loadAllContext() {
   const memory = loadMemory();
   const todos = loadTodos();
   const projects = loadProjects();
+  const memories = loadMemories();
 
   let context = '';
   
@@ -59,6 +76,13 @@ export function loadAllContext() {
   if (projects) {
     context += `\n## 📁 PROJECT FILES\n`;
     for (const [name, content] of Object.entries(projects)) {
+      context += `\n### ${name}\n${content}\n`;
+    }
+  }
+  
+  if (memories) {
+    context += `\n## 📚 PERSONAL MEMORIES & RESEARCH\n`;
+    for (const [name, content] of Object.entries(memories)) {
       context += `\n### ${name}\n${content}\n`;
     }
   }
