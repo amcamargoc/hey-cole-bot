@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { splitMessage, isValidMessage, isStrongPassword, validatePasswordRequirements } from './utils.js';
+import { splitMessage, isValidMessage } from '../../src/utils/textUtils.js';
+import { isStrongPassword, validatePasswordRequirements } from '../../src/utils/validationUtils.js';
 
 test('splitMessage splits long text correctly and handles code blocks', (t) => {
   const longText = 'Some text\n```js\nconst x = 1;\n' + 'console.log(x);\n'.repeat(300) + '```\nMore text';

@@ -231,16 +231,24 @@ Hey Cole enforces strong password protection:
 src/
 ├── index.js              # Bot entry point & security check
 ├── handlers/
-│   ├── commandHandler.js  # Telegram commands & project switching
-│   └── messageHandler.js # Message processing & MCP bridge
+│   ├── commandHandler.js  # Telegram commands
+│   └── messageHandler.js # Message processing loop
 ├── services/
-│   ├── opencode.js    # OpenCode SDK client
-│   └── session.js     # Session & Project management
+│   ├── llmService.js     # OpenCode AI logic (Prompt/Precision)
+│   ├── opencode.js       # SDK & Server lifecycle
+│   ├── session.js        # JSON-backed persistence
+│   ├── promptService.js  # Markdown prompt loader
+│   ├── logger.js         # Unified observability
+│   └── tuiControl.js     # Background interactive poller
 ├── middleware/
-│   └── auth.js       # Authorization & rate limiting
-├── utils.js         # Password validation & message splitting
+│   └── auth.js           # Password & Rate limiting
+├── utils/                # Specialized utility modules
+│   ├── textUtils.js      
+│   ├── markdownUtils.js
+│   └── validationUtils.js
 └── skills/
-    └── google.js    # Google Workspace legacy bridge
+    └── google.js         # Google Workspace bridge
+test/                     # Unified test suite
 ```
 
 ## Testing

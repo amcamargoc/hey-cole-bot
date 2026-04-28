@@ -40,8 +40,8 @@ export async function connectToServer(bot) {
       setTuiBot(bot);
       startTuiPoller();
       
-      // Ensure GitHub MCP is registered
-      await ensureGithubMcp();
+      // Ensure all skills are registered
+      await ensureSkills();
       
       return true;
     } catch (err) {
@@ -125,32 +125,44 @@ async function setupEventListeners(bot) {
 }
 
 
-async function ensureGithubMcp() {
-  if (!opencodeClient || !process.env.GITHUB_TOKEN) return;
+/**
+ * Ensures all connected skills and MCP servers are registered
+ */
+async function ensureSkills() {
+  if (!opencodeClient) return;
   
-  try {
-    const status = await opencodeClient.mcp.status();
-    const serversData = status.data || [];
-    const servers = Array.isArray(serversData) ? serversData : Object.values(serversData);
-    const hasGithub = servers.some(s => s.name === 'github');
-    
-    if (!hasGithub) {
-      console.log('Registering GitHub MCP server...');
-      await opencodeClient.mcp.add({
-        body: {
-          name: 'github',
-          config: {
-            type: "local",
-            command: ['npx', '-y', '@modelcontextprotocol/server-github'],
-            environment: {
-              GITHUB_PERSONAL_ACCESS_TOKEN: process.env.GITHUB_TOKEN
+  // 1. GitHub MCP
+  if (process.env.GITHUB_TOKEN) {
+    try {
+      const status = await opencodeClient.mcp.status();
+      const serversData = status.data || [];
+      const servers = Array.isArray(serversData) ? serversData : Object.values(serversData);
+      const hasGithub = servers.some(s => s.name === 'github');
+      
+      if (!hasGithub) {
+        console.log('Registering GitHub MCP server...');
+        await opencodeClient.mcp.add({
+          body: {
+            name: 'github',
+            config: {
+              type: "local",
+              command: ['npx', '-y', '@modelcontextprotocol/server-github'],
+              environment: {
+                GITHUB_PERSONAL_ACCESS_TOKEN: process.env.GITHUB_TOKEN
+              }
             }
           }
-        }
-      });
-      console.log('GitHub MCP server registered successfully.');
+        });
+        console.log('✅ GitHub MCP server registered.');
+      }
+    } catch (err) {
+      console.warn('⚠️ GitHub MCP registration failed (continuing):', err.message);
     }
-  } catch (err) {
-    console.error('Failed to ensure GitHub MCP:', err.message);
+  } else {
+    console.warn('⚠️ GITHUB_TOKEN missing. GitHub skills disabled.');
   }
+
+  // 2. Local Skills Verification
+  // We don't "register" Bash tools, but we can verify dependencies if needed.
+  // For example, checking if Google Workspace CLI dependencies are installed is done in person logic.
 }

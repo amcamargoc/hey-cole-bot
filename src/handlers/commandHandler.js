@@ -1,10 +1,11 @@
 import { Markup } from 'telegraf';
 import { requireAuth, authorizeUser, validatePassword, checkAuthRateLimit, recordFailedAuthAttempt, getAuthLockoutRemaining, getRemainingAttempts } from '../middleware/auth.js';
-import { sessions, getSessionKey, getActiveProject, switchProject } from '../services/session.js';
+import { sessions, getSessionKey, getActiveProject, switchProject, updateSession, deleteSession } from '../services/session.js';
 import { opencodeClient, opencodeServerRunning } from '../services/opencode.js';
-import { DEFAULT_SYSTEM_PROMPT } from './messageHandler.js';
+import { buildSystemPrompt } from '../services/promptService.js';
 import { TIERS, DEFAULT_TIER } from '../config/models.js';
 import { submitTuiResponse, getPendingQuestion } from '../services/tuiControl.js';
+import { abortGeneration, undoLastMessage, summarizeSession } from '../services/llmService.js';
 
 export function setupCommands(bot) {
   bot.start(async (ctx) => {
@@ -78,6 +79,7 @@ export function setupCommands(bot) {
     
     sessionData.model = { providerID: tier.providerID, modelID: tier.modelID };
     sessionData.lastUsed = Date.now();
+    updateSession(sessionKey, sessionData);
 
     await ctx.answerCbQuery();
     await ctx.editMessageText(`✅ Brain set to: *${tier.name}*\n\nMode: ${tier.description}`, { parse_mode: 'Markdown' });
@@ -167,7 +169,7 @@ export function setupCommands(bot) {
     const sessionData = sessions.get(sessionKey);
     if (!sessionData) return ctx.reply('❌ No active session.');
     try {
-      await opencodeClient.session.abort({ path: { id: sessionData.id } });
+      await abortGeneration(sessionData.id);
       await ctx.reply('🛑 Generation aborted.');
     } catch (error) {
       await ctx.reply(`❌ Abort failed: ${error.message}`);
@@ -181,7 +183,7 @@ export function setupCommands(bot) {
     const sessionData = sessions.get(sessionKey);
     if (!sessionData) return ctx.reply('❌ No active session.');
     try {
-      await opencodeClient.session.revert({ path: { id: sessionData.id } });
+      await undoLastMessage(sessionData.id);
       await ctx.reply('⏪ Last message reverted.');
     } catch (error) {
       await ctx.reply(`❌ Undo failed: ${error.message}`);
@@ -196,10 +198,7 @@ export function setupCommands(bot) {
     if (!sessionData) return ctx.reply('❌ No active session.');
     try {
       ctx.replyWithChatAction('typing');
-      await opencodeClient.session.summarize({ 
-        path: { id: sessionData.id },
-        body: { providerID: sessionData.model?.providerID || 'default', modelID: sessionData.model?.modelID || 'default' }
-      });
+      await summarizeSession(sessionData.id, sessionData.model);
       await ctx.reply('📝 *Session Summary:* The session has been summarized in context.', { parse_mode: 'Markdown' });
     } catch (error) {
       await ctx.reply(`❌ Summarization failed: ${error.message}`);
@@ -209,14 +208,14 @@ export function setupCommands(bot) {
   bot.command('new', async (ctx) => {
     if (!requireAuth(ctx)) return;
     const sessionKey = getSessionKey(ctx.chat.id);
-    sessions.delete(sessionKey);
+    deleteSession(sessionKey);
     await ctx.reply('🔄 Started a new session for current project!');
   });
 
   bot.command('clear', async (ctx) => {
     if (!requireAuth(ctx)) return;
     const sessionKey = getSessionKey(ctx.chat.id);
-    sessions.delete(sessionKey);
+    deleteSession(sessionKey);
     await ctx.reply('🗑️ Session cleared for current project!');
   });
 
@@ -248,6 +247,7 @@ export function setupCommands(bot) {
     const sessionData = sessions.get(sessionKey);
     if (!sessionData) return ctx.reply('❌ Send a message first to establish an active session.');
     sessionData.precisionMode = !sessionData.precisionMode;
+    updateSession(sessionKey, sessionData);
     if (sessionData.precisionMode) {
       await ctx.reply('🎯 *Precision Mode: ON*\nYour future responses will now be double-checked by a secondary AI agent for maximum accuracy. Note: This will increase response time.', { parse_mode: 'Markdown' });
     } else {
@@ -269,13 +269,14 @@ export function setupCommands(bot) {
       sessionData.devModeStartedAt = null;
       await ctx.reply('🔒 *Developer Mode: OFF*\nCode-editing tools are now locked.', { parse_mode: 'Markdown' });
     }
+    updateSession(sessionKey, sessionData);
   });
 
   bot.command('system', async (ctx) => {
     if (!requireAuth(ctx)) return;
     const sessionKey = getSessionKey(ctx.chat.id);
     const sessionData = sessions.get(sessionKey);
-    const prompt = sessionData?.systemPrompt || DEFAULT_SYSTEM_PROMPT;
+    const prompt = sessionData?.systemPrompt || buildSystemPrompt(sessionData?.developerMode);
     await ctx.reply(`🧠 *Current System Prompt:*\n\n\`\`\`\n${prompt}\n\`\`\``, { parse_mode: 'Markdown' });
   });
 
