@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import * as sessionModule from '../services/session.js';
-import * as opencodeModule from '../services/opencode.js';
+import * as sessionModule from '../../src/services/session.js';
+import * as opencodeModule from '../../src/services/opencode.js';
 
 // Mock bot
 const mockBot = {
@@ -25,7 +25,7 @@ const mockOpencodeClient = {
 
 // Run command handler tests (removed skip after fixing template literals)
 test('setup commands', async () => {
-  const { setupCommands } = await import('./commandHandler.js');
+  const { setupCommands } = await import('../../src/handlers/commandHandler.js');
   setupCommands(mockBot);
   assert.ok(mockBot.commands['project']);
 });
@@ -40,7 +40,7 @@ test('/project command updates active project', async (t) => {
   };
 
   // Skip auth for test (manually authorize)
-  const authModule = await import('../middleware/auth.js');
+  const authModule = await import('../../src/middleware/auth.js');
   authModule.authorizeUser(chatId);
 
   await mockBot.commands['project'](ctx);

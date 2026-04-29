@@ -4,7 +4,7 @@ import { startOpenCodeServer, opencodeClient, opencodeServer, connectToServer, o
 import { cleanupOldSessions } from './services/session.js';
 import { setupCommands } from './handlers/commandHandler.js';
 import { handleMessage } from './handlers/messageHandler.js';
-import { isStrongPassword, validatePasswordRequirements } from './utils.js';
+import { isStrongPassword, validatePasswordRequirements } from './utils/validationUtils.js';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const BOT_PASSWORD = process.env.BOT_PASSWORD;

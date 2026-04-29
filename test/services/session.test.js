@@ -7,7 +7,7 @@ import {
   sessions,
   cleanupOldSessions,
   SESSION_TIMEOUT
-} from './session.js';
+} from '../../src/services/session.js';
 
 test('project switching and session keys', (t) => {
   const chatId = 'user123';
