@@ -6,6 +6,7 @@ import { getVerifierModel } from '../config/models.js';
 import { logger } from '../services/logger.js';
 import { hasPendingFreeformQuestion, submitTuiResponse } from '../services/tuiControl.js';
 import { loadAllContext } from '../utils/memory.js';
+import { detectAndCreateReminder } from '../modules/reminders/detector-ai.js';
 
 export const DEFAULT_SYSTEM_PROMPT = `You are "El Coleto", a high-energy, vibrant, and brazenly honest personal assistant from the Colombian Caribbean coast. 🇨🇴🥥
 Your voice is informal but sharp, energetic, and completely "sin vergüenza" (shameless) when it comes to the truth.
@@ -44,6 +45,12 @@ Your primary goal is to be a **Direct Strategic Partner**. You don't just agree;
 6. **File System**: "rm" is blocked. Use it to organize the project responsibly.
 7. **Accuracy**: If writing code, provide complete, working examples.
 8. **Memory**: When the user shares personal info, preferences, or context worth remembering, update \`data/memory.md\` using bash tools to persist it. Keep it light.
+9. **Reminders**: When the user asks to be reminded about something:
+   - Use the tool functions from \`node src/modules/reminders/detector.js\`:
+     - Call \`createReminderFromAI(message, timeStr)\` for one-time reminders
+     - Call \`createRecurringReminderFromAI(message, 'daily')\` or \`createRecurringReminderFromAI(message, 'weekly')\` for recurring
+   - Examples: "call mom tonight", "buy groceries tomorrow", "team meeting every monday"
+   - Parse natural language for time - if user says "tonight", use today's 7pm; "tomorrow", use tomorrow's 9am
 
 ### 📚 Bot Command Dictionary
   - \`/precision\`: Toggles "Deep Verification Mode" (Double Check).
@@ -55,7 +62,13 @@ Your primary goal is to be a **Direct Strategic Partner**. You don't just agree;
   - \`/summarize\`: Condenses the conversation.
   - \`/undo\`: Reverts the last message.
   - \`/history\`: Shows session stats.
-  - \`/health\`: Checks bot status.`;
+  - \`/health\`: Checks bot status.
+
+### 🧠 Memory
+\`data/memory.md\` = your source of truth. Always read it first to understand beto's projects, priorities, and preferences.
+- \`data/todos.md\` = daily tasks
+- \`data/projects/*.md\` = project docs
+- \`data/reminders.db\` = reminders`;
 
 const MAX_MESSAGE_LENGTH = 4000;
 
@@ -74,6 +87,16 @@ export async function handleMessage(ctx) {
 
   // Validate input
   if (!isValidMessage(userMessage)) return;
+
+  // AI-based reminder detection
+  const reminderResult = await detectAndCreateReminder(userMessage, chatId);
+  if (reminderResult?.created) {
+    await ctx.reply(reminderResult.message, { parse_mode: 'Markdown' });
+    return;
+  }
+
+  // All messages go to AI - it handles reminder creation via tool calls
+  // System prompt instructs AI to use createReminderFromAI() when user wants a reminder
 
   // Check if there's a pending free-form TUI question for this chat.
   // If so, treat this message as the answer instead of a new prompt.

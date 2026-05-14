@@ -1,9 +1,28 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync } from 'fs';
 import { join } from 'path';
 import { fileURLToPath } from 'url';
+import Database from 'better-sqlite3';
 
 const __dirname = fileURLToPath(new URL('.', import.meta.url));
 const DATA_DIR = join(__dirname, '../../data');
+
+export function loadReminders() {
+  const dbPath = join(DATA_DIR, 'reminders.db');
+  if (!existsSync(dbPath)) return null;
+  try {
+    const db = new Database(dbPath, { readonly: true });
+    const active = db.prepare('SELECT message, reminder_time, recurrence FROM reminders WHERE status = ? ORDER BY reminder_time').all('active');
+    db.close();
+    if (active.length === 0) return null;
+    return active.map(r => ({
+      message: r.message,
+      time: new Date(r.reminder_time * 1000).toISOString(),
+      recurrence: r.recurrence
+    }));
+  } catch {
+    return null;
+  }
+}
 
 export function loadMemory() {
   const path = join(DATA_DIR, 'memory.md');
@@ -62,6 +81,7 @@ export function loadAllContext() {
   const todos = loadTodos();
   const projects = loadProjects();
   const memories = loadMemories();
+  const reminders = loadReminders();
 
   let context = '';
   
@@ -71,6 +91,15 @@ export function loadAllContext() {
   
   if (todos) {
     context += `\n## 📋 DAILY TASKS (todos.md)\n${todos}\n`;
+  }
+  
+  if (reminders) {
+    context += `\n## ⏰ SCHEDULED REMINDERS\n`;
+    reminders.forEach(r => {
+      const rec = r.recurrence ? ` (${r.recurrence})` : '';
+      context += `- ${r.message.substring(0, 80)}...${rec}\n`;
+    });
+    context += '\n';
   }
   
   if (projects) {

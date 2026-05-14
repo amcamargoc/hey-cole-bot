@@ -5,6 +5,9 @@ import { cleanupOldSessions } from './services/session.js';
 import { setupCommands } from './handlers/commandHandler.js';
 import { handleMessage } from './handlers/messageHandler.js';
 import { isStrongPassword, validatePasswordRequirements } from './utils.js';
+import { setupReminderCommands, stopScheduler } from './modules/reminders/index.js';
+import { closeDb } from './modules/reminders/model.js';
+import { spawn } from 'child_process';
 
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const BOT_PASSWORD = process.env.BOT_PASSWORD;
@@ -50,6 +53,11 @@ await startOpenCodeServer(bot);
 setupCommands(bot);
 bot.on('text', handleMessage);
 
+// Setup reminder commands (if owner is configured)
+if (OWNER_CHAT_ID) {
+  setupReminderCommands(bot, parseInt(OWNER_CHAT_ID, 10));
+}
+
 // Global Error Handler
 bot.catch((err, ctx) => {
   console.error(`Telegraf error for ${ctx.updateType}:`, err);
@@ -75,7 +83,10 @@ setInterval(async () => {
 // Graceful shutdown
 process.on('SIGINT', async () => {
   console.log('Shutting down...');
+  stopScheduler();
+  closeDb();
   if (opencodeServer) opencodeServer.close();
+  syncProcess.kill();
   process.exit();
 });
 
@@ -96,5 +107,25 @@ async function startBot() {
 
 startBot();
 
-process.once('SIGINT', () => bot.stop('SIGINT'));
-process.once('SIGTERM', () => bot.stop('SIGTERM'));
+// Start data folder sync watcher (auto-sync to remote repository)
+const syncProcess = spawn('node', ['scripts/sync-data.js'], {
+  cwd: process.cwd(),
+  detached: true,
+  stdio: 'ignore'
+});
+
+syncProcess.unref();
+console.log('📦 Data sync watcher started');
+
+process.once('SIGINT', () => {
+  stopScheduler();
+  closeDb();
+  syncProcess.kill();
+  bot.stop('SIGINT');
+});
+process.once('SIGTERM', () => {
+  stopScheduler();
+  closeDb();
+  syncProcess.kill();
+  bot.stop('SIGTERM');
+});

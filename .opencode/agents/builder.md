@@ -31,6 +31,12 @@ Load the appropriate skill for the task:
 
 - Always load `research` before any other skill
 - Work on ONE phase at a time from the plan in `./plans/`
+
+## Data folder sync
+
+The local `data/` folder is synced with a remote repository (git@github.com:amcamargoc/memoria-del-cole.git).
+- After ANY change to files in `data/` folder, you MUST push the changes to the remote repository.
+- Run: `npm run sync`
 - Follow existing codebase patterns — do not invent new ones
 - Commit working state after completing each task
 - If something is unclear, ask — do not guess
